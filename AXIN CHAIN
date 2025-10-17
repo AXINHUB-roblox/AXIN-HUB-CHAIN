@@ -1,0 +1,402 @@
+-- AXIN HUB X959 - CHAIN [ENRAGED] 分类UI系统
+local library = loadstring(game:HttpGet(('https://github.com/DevSloPo/Auto/raw/main/Ware-obfuscated.lua')))()
+
+local window = library:new("AXIN HUB X959 - CHAIN [ENRAGED]")
+
+-- ========== 自动战斗分类 ==========
+local CombatTab = window:Tab("自动战斗", "7733774602")
+
+-- 自动攻击部分
+local AutoAttackSection = CombatTab:section("自动攻击", true)
+AutoAttackSection:Label("⚔️ 自动攻击系统")
+
+AutoAttackSection:Toggle("启用自动攻击", "", false, function(state)
+    getgenv().AutoAttackEnabled = state
+    if state then
+        StartAutoAttack()
+    else
+        StopAutoAttack()
+    end
+end)
+
+AutoAttackSection:Slider("攻击范围", "", 12, 5, 20, true, function(value)
+    getgenv().AttackRange = value
+end)
+
+AutoAttackSection:Slider("攻击速度", "", 0.8, 0.1, 2.0, true, function(value)
+    getgenv().AttackSpeed = value
+end)
+
+AutoAttackSection:Dropdown("目标优先级", "", { "最近目标", "最低血量", "最高威胁" }, function(selected)
+    getgenv().TargetPriority = selected
+end)
+
+AutoAttackSection:Toggle("连击模式", "", true, function(state)
+    getgenv().ComboMode = state
+end)
+
+-- 自动格挡部分
+local AutoBlockSection = CombatTab:section("自动格挡", true)
+AutoBlockSection:Label("🛡️ 自动格挡系统")
+
+AutoBlockSection:Toggle("启用自动格挡", "", false, function(state)
+    getgenv().AutoBlockEnabled = state
+    if state then
+        StartAutoBlock()
+    else
+        StopAutoBlock()
+    end
+end)
+
+AutoBlockSection:Slider("格挡范围", "", 10, 5, 15, true, function(value)
+    getgenv().BlockRange = value
+end)
+
+AutoBlockSection:Slider("反应速度", "", 0.1, 0.05, 0.3, true, function(value)
+    getgenv().BlockReactionTime = value
+end)
+
+AutoBlockSection:Toggle("完美格挡", "", true, function(state)
+    getgenv().PerfectBlock = state
+end)
+
+AutoBlockSection:Toggle("人类模式", "", true, function(state)
+    getgenv().HumanLikeBlock = state
+end)
+
+-- 自动躲避部分
+local AutoDodgeSection = CombatTab:section("自动躲避", true)
+AutoDodgeSection:Label("🎯 自动躲避系统")
+
+AutoDodgeSection:Toggle("启用自动躲避", "", false, function(state)
+    getgenv().AutoDodgeEnabled = state
+    if state then
+        StartAutoDodge()
+    else
+        StopAutoDodge()
+    end
+end)
+
+AutoDodgeSection:Slider("躲避范围", "", 8, 5, 15, true, function(value)
+    getgenv().DodgeRange = value
+end)
+
+AutoDodgeSection:Slider("躲避冷却", "", 1.0, 0.5, 3.0, true, function(value)
+    getgenv().DodgeCooldown = value
+end)
+
+AutoDodgeSection:Dropdown("躲避策略", "", { "智能躲避", "总是后退", "左右闪避" }, function(selected)
+    getgenv().DodgeStrategy = selected
+end)
+
+AutoDodgeSection:Toggle("危险检测", "", true, function(state)
+    getgenv().DangerDetection = state
+end)
+
+-- ========== 资源管理分类 ==========
+local ResourcesTab = window:Tab("资源管理", "78892482588180")
+
+-- 无限体力部分
+local StaminaSection = ResourcesTab:section("无限体力", true)
+StaminaSection:Label("💪 体力管理系统")
+
+StaminaSection:Toggle("启用无限体力", "", false, function(state)
+    getgenv().InfiniteStaminaEnabled = state
+    if state then
+        StartInfiniteStamina()
+    else
+        StopInfiniteStamina()
+    end
+end)
+
+StaminaSection:Slider("体力上限", "", 100, 50, 200, true, function(value)
+    getgenv().MaxStamina = value
+end)
+
+StaminaSection:Toggle("自动检测", "", true, function(state)
+    getgenv().AutoDetectStamina = state
+end)
+
+StaminaSection:Button("重新检测体力系统", "", function()
+    DetectStaminaSystems()
+end)
+
+StaminaSection:Label("检测状态: 等待中")
+
+-- 攻击资源部分
+local ComboResourcesSection = ResourcesTab:section("攻击资源", true)
+ComboResourcesSection:Label("🔥 攻击资源管理")
+
+ComboResourcesSection:Toggle("无限攻击体力", "", false, function(state)
+    getgenv().InfiniteComboStaminaEnabled = state
+    if state then
+        StartInfiniteComboStamina()
+    else
+        StopInfiniteComboStamina()
+    end
+end)
+
+ComboResourcesSection:Slider("资源上限", "", 100, 50, 200, true, function(value)
+    getgenv().MaxComboStamina = value
+end)
+
+ComboResourcesSection:Toggle("连击点数无限", "", true, function(state)
+    getgenv().InfiniteComboPoints = state
+end)
+
+ComboResourcesSection:Toggle("特殊能量无限", "", true, function(state)
+    getgenv().InfiniteSpecialEnergy = state
+end)
+
+ComboResourcesSection:Button("重新检测资源系统", "", function()
+    DetectComboResources()
+end)
+
+-- ========== 战斗设置分类 ==========
+local SettingsTab = window:Tab("战斗设置", "1234567890")
+
+-- 通用设置部分
+local GeneralSettingsSection = SettingsTab:section("通用设置", true)
+GeneralSettingsSection:Label("⚙️ 通用战斗设置")
+
+GeneralSettingsSection:Dropdown("战斗模式", "", { "进攻模式", "防守模式", "平衡模式" }, function(selected)
+    getgenv().CombatMode = selected
+    UpdateCombatBehavior()
+end)
+
+GeneralSettingsSection:Slider("全局灵敏度", "", 0.8, 0.1, 1.5, true, function(value)
+    getgenv().GlobalSensitivity = value
+end)
+
+GeneralSettingsSection:Toggle("人类行为模拟", "", true, function(state)
+    getgenv().HumanLikeBehavior = state
+end)
+
+GeneralSettingsSection:Toggle("随机化模式", "", true, function(state)
+    getgenv().Randomization = state
+end)
+
+GeneralSettingsSection:Toggle("安全模式", "", true, function(state)
+    getgenv().SafeMode = state
+end)
+
+-- 高级设置部分
+local AdvancedSettingsSection = SettingsTab:section("高级设置", true)
+AdvancedSettingsSection:Label("🔧 高级战斗设置")
+
+AdvancedSettingsSection:Slider("攻击延迟", "", 0.05, 0.01, 0.2, true, function(value)
+    getgenv().AttackDelay = value
+end)
+
+AdvancedSettingsSection:Slider("格挡时机", "", 0.15, 0.05, 0.3, true, function(value)
+    getgenv().BlockTiming = value
+end)
+
+AdvancedSettingsSection:Slider("躲避角度", "", 45, 15, 90, true, function(value)
+    getgenv().DodgeAngle = value
+end)
+
+AdvancedSettingsSection:Toggle("反击模式", "", false, function(state)
+    getgenv().CounterAttack = state
+end)
+
+AdvancedSettingsSection:Toggle("连招优化", "", true, function(state)
+    getgenv().ComboOptimization = state
+end)
+
+-- ========== 系统信息分类 ==========
+local SystemTab = window:Tab("系统信息", "9876543210")
+
+-- 状态监控部分
+local StatusSection = SystemTab:section("状态监控", true)
+StatusSection:Label("📊 系统状态信息")
+
+StatusSection:Label("战斗状态: 未激活")
+StatusSection:Label("当前目标: 无")
+StatusSection:Label("体力状态: 100/100")
+StatusSection:Label("攻击资源: 100/100")
+StatusSection:Label("系统运行: 正常")
+
+StatusSection:Button("刷新状态", "", function()
+    UpdateStatusDisplay()
+end)
+
+-- 系统控制部分
+local ControlSection = SystemTab:section("系统控制", true)
+ControlSection:Label("🎮 系统控制面板")
+
+ControlSection:Button("启动所有功能", "", function()
+    EnableAllFeatures()
+end)
+
+ControlSection:Button("停止所有功能", "", function()
+    DisableAllFeatures()
+end)
+
+ControlSection:Button("重置设置", "", function()
+    ResetAllSettings()
+end)
+
+ControlSection:Button("保存配置", "", function()
+    SaveConfiguration()
+end)
+
+ControlSection:Button("加载配置", "", function()
+    LoadConfiguration()
+end)
+
+-- 关于信息部分
+local AboutSection = SystemTab:section("关于", true)
+AboutSection:Label("AXIN HUB X959")
+AboutSection:Label("版本: v4.0-ChainEnraged")
+AboutSection:Label("游戏: CHAIN [ENRAGED]")
+AboutSection:Label("作者: 冷秋")
+AboutSection:Label("构建: Premium")
+
+AboutSection:Button("检查更新", "", function()
+    CheckForUpdates()
+end)
+
+-- ========== 功能实现部分 ==========
+
+-- 自动攻击系统
+function StartAutoAttack()
+    print("⚔️ 自动攻击系统启动")
+    -- 这里添加自动攻击的实现代码
+end
+
+function StopAutoAttack()
+    print("⚔️ 自动攻击系统停止")
+    -- 这里添加停止自动攻击的代码
+end
+
+-- 自动格挡系统
+function StartAutoBlock()
+    print("🛡️ 自动格挡系统启动")
+    -- 这里添加自动格挡的实现代码
+end
+
+function StopAutoBlock()
+    print("🛡️ 自动格挡系统停止")
+    -- 这里添加停止自动格挡的代码
+end
+
+-- 自动躲避系统
+function StartAutoDodge()
+    print("🎯 自动躲避系统启动")
+    -- 这里添加自动躲避的实现代码
+end
+
+function StopAutoDodge()
+    print("🎯 自动躲避系统停止")
+    -- 这里添加停止自动躲避的代码
+end
+
+-- 无限体力系统
+function StartInfiniteStamina()
+    print("💪 无限体力系统启动")
+    -- 这里添加无限体力的实现代码
+end
+
+function StopInfiniteStamina()
+    print("💪 无限体力系统停止")
+    -- 这里添加停止无限体力的代码
+end
+
+-- 无限攻击体力系统
+function StartInfiniteComboStamina()
+    print("🔥 无限攻击体力系统启动")
+    -- 这里添加无限攻击体力的实现代码
+end
+
+function StopInfiniteComboStamina()
+    print("🔥 无限攻击体力系统停止")
+    -- 这里添加停止无限攻击体力的代码
+end
+
+-- 系统功能
+function DetectStaminaSystems()
+    print("🔍 检测体力系统中...")
+    -- 这里添加体力系统检测代码
+end
+
+function DetectComboResources()
+    print("🔍 检测攻击资源系统中...")
+    -- 这里添加攻击资源检测代码
+end
+
+function UpdateCombatBehavior()
+    print("⚙️ 更新战斗行为: " .. tostring(getgenv().CombatMode))
+    -- 这里添加战斗行为更新代码
+end
+
+function UpdateStatusDisplay()
+    print("📊 更新状态显示")
+    -- 这里添加状态更新代码
+end
+
+function EnableAllFeatures()
+    print("🚀 启动所有功能")
+    -- 这里添加启动所有功能的代码
+end
+
+function DisableAllFeatures()
+    print("🛑 停止所有功能")
+    -- 这里添加停止所有功能的代码
+end
+
+function ResetAllSettings()
+    print("🔄 重置所有设置")
+    -- 这里添加重置设置的代码
+end
+
+function SaveConfiguration()
+    print("💾 保存配置")
+    -- 这里添加保存配置的代码
+end
+
+function LoadConfiguration()
+    print("📁 加载配置")
+    -- 这里添加加载配置的代码
+end
+
+function CheckForUpdates()
+    print("🔔 检查更新")
+    -- 这里添加更新检查代码
+end
+
+-- 初始化全局变量
+getgenv().AutoAttackEnabled = false
+getgenv().AutoBlockEnabled = false
+getgenv().AutoDodgeEnabled = false
+getgenv().InfiniteStaminaEnabled = false
+getgenv().InfiniteComboStaminaEnabled = false
+
+getgenv().AttackRange = 12
+getgenv().AttackSpeed = 0.8
+getgenv().BlockRange = 10
+getgenv().BlockReactionTime = 0.1
+getgenv().DodgeRange = 8
+getgenv().DodgeCooldown = 1.0
+getgenv().MaxStamina = 100
+getgenv().MaxComboStamina = 100
+
+getgenv().TargetPriority = "最近目标"
+getgenv().CombatMode = "平衡模式"
+getgenv().DodgeStrategy = "智能躲避"
+
+getgenv().HumanLikeBehavior = true
+getgenv().Randomization = true
+getgenv().SafeMode = true
+getgenv().PerfectBlock = true
+getgenv().ComboMode = true
+getgenv().DangerDetection = true
+getgenv().AutoDetectStamina = true
+getgenv().InfiniteComboPoints = true
+getgenv().InfiniteSpecialEnergy = true
+getgenv().CounterAttack = false
+getgenv().ComboOptimization = true
+
+print("✅ AXIN HUB X959 UI系统加载完成!")
+print("🎮 游戏: CHAIN [ENRAGED]")
+print("📁 分类: 自动战斗 | 资源管理 | 战斗设置 | 系统信息")
